@@ -1,6 +1,8 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
+# include "segmentation.hpp"
 
+using namespace cv;
 // Class Design
 
 // After Images Struct 
@@ -52,5 +54,19 @@ public:
 
 int main(int argc, char** argv)
 {
+    std::vector<Rect> rois; // Here süleyman will give this coordinates. they are like below
+    
+//    rois.push_back(Rect(370, 436, 313, 331));  // Example coordinates for first ROI
+//    rois.push_back(Rect(737, 145, 384, 400));  // Example coordinates for second ROI
+//    rois.push_back(Rect(259, 532, 347, 357));  // Example coordinates for third ROI
+//    rois.push_back(Rect(235, 79, 243, 178));   // Example coordinates for fourth ROI
+// Add more ROI coordinates if needed
+    
+    Mat resultLast = segmentImage(image, rois);
+
+    // Show the binary mask
+    namedWindow("Segmented", WINDOW_NORMAL);
+    imshow("Segmented", resultLast);
+    
 	return 0;
 }
