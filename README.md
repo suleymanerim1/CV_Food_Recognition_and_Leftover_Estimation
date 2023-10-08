@@ -4,7 +4,7 @@ This is a project carried out for Computer Vision Course in University of Padua.
 ## Table of contents
 * [General Info](#General-Info)
 * [Group Members](#Group-Members)
-* [Task](Task)
+* [Task](#Task)
 * [Dataset Description](#Dataset-Description)
 * [Project Structure](#Project-Structure)
 
