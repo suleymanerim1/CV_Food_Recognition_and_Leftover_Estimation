@@ -1,18 +1,26 @@
 // Evaluation functions
 
 // including header of declaration
-#include "evaluation.h"
-
+#include "Evaluation.h"
+#include <regex>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
 #include <vector>
-#include "opencv2/opencv.hpp"
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
+#include <filesystem>
+
+
+    
+
 
 
 // Intersection over Union (IoU) given ground truth and prediction bounding boxes
-float get_iou(const cv::Rect& groundTruth, const cv::Rect& prediction)
+float get_annotation_iou(const cv::Rect& groundTruth, const cv::Rect& prediction)
 {
     // Calculate the areas of the ground truth and prediction bounding boxes
     int groundTruthArea = groundTruth.width * groundTruth.height;
@@ -43,118 +51,100 @@ float get_iou(const cv::Rect& groundTruth, const cv::Rect& prediction)
     return iou;
 }
 
-float averagePrecision(std::vector<cv::Rect>& groundTruths, std::vector<cv::Rect>& predictions)
+float meanaveragePrecision(const std::vector<cv::Rect>& groundTruths, const std::vector<cv::Rect>& predictions, std::vector<int>& IDs)
 {
-    // 1) Sort Predictions, as confidence score I use IoU, I am assuming that the vectors have predictions of the initial images at the same positions
-    std::vector<float> score(predictions.size());
-    for (size_t i = 0; i < predictions.size(); ++i) {
-        score[i] = get_iou(groundTruths[i], predictions[i]);
-    }
+    // Initialization of vectors
+    std::vector<int> uniqueIDs(IDs.begin(), IDs.end());
+    std::sort(uniqueIDs.begin(), uniqueIDs.end());
+    uniqueIDs.erase(std::unique(uniqueIDs.begin(), uniqueIDs.end()), uniqueIDs.end());
 
-    // Sort predictions vector based on confidence scores
-    for (int i = 0; i < predictions.size() - 1; ++i)
-    {
-        for (int j = 0; j < predictions.size() - i - 1; ++j)
-        {
-            if (score[j] < score[j + 1])
+   
+    float sumPrecision = 0.0;
+    int totalClasses = uniqueIDs.size();
+
+
+    // Storing precisions per classes
+    std::vector<float> classPrecisions(totalClasses, 0.0);
+
+    // Calculate the precision for each class
+    for (int i = 0; i < totalClasses; i++) {
+        // Counters for true positives and total predictions for the current class
+        int truePositive = 0;
+        int totalPredictions = 0;
+        // Iterating through predictions and their corresponding ground truth
+        for (size_t j = 0; j < predictions.size(); j++) {
+            const cv::Rect& prediction = predictions[j];
+            const cv::Rect& groundTruth = groundTruths[j];
+            int predictionID = IDs[j];
+            
+            // Check if the ID matches the current class.
+            if (predictionID == uniqueIDs[i])
             {
-                cv::Rect temp = predictions[j];
-                predictions[j] = predictions[j + 1];
-                predictions[j + 1] = temp;
-                cv::Rect temp2 = groundTruths[j];
-                groundTruths[j] = groundTruths[j + 1];
-                groundTruths[j + 1] = temp2;
-                float temp3 = score[j];
-                score[j] = score[j + 1];
-                score[j + 1] = temp3;
+                
+                    // Calculate IoU
+                    float iou = get_annotation_iou(groundTruth, prediction);
+
+                    // Check if the IoU (Intersection over Union) exceeds the threshold value of 0.5 to consider the prediction as a true positive.
+                    if (iou > 0.5) {
+                        truePositive++;
+                    }
+                    totalPredictions++;
+                
+
+                
+                
+                 
             }
         }
+            // Calculate the precision for the current class.
+            float precision = static_cast<float>(truePositive) / totalPredictions;
+            classPrecisions[i] = precision;  // Store the precision for the current class.
+            std::cout << "Precision for ID " << uniqueIDs[i] << ": " << precision << std::endl;
+            sumPrecision += precision;  // Add the precision to the total sum.
+        
+        
     }
 
-    for (const auto& rect : predictions) {
-        std::cout << "Predictions: " << rect.x
-            << ", " << rect.y
-            << ", " << rect.width
-            << ", " << rect.height << std::endl;
-    }
-    for (const auto& rect : groundTruths) {
-        std::cout << "groundTruths: " << rect.x
-            << ", " << rect.y
-            << ", " << rect.width
-            << ", " << rect.height << std::endl;
-    }
+    // Calculate the mean average precision (mAP).
+    float meanAveragePrecision = sumPrecision / totalClasses;
+    //std::cout << "mean Average Precision "  << meanAveragePrecision << std::endl;
+    return meanAveragePrecision;
+}
 
-    int truePositives = 0;
-    int falsePositives = 0;
-    int falseNegatives = 0;
-    std::vector<float> precision(predictions.size());
-    std::vector<float> recall(predictions.size());
+float get_segmentation_iou(const cv::Mat& groundTruth, const cv::Mat& prediction) {
+    cv::Mat intersection, union_;
+    cv::bitwise_and(groundTruth, prediction, intersection);
+    cv::bitwise_or(groundTruth, prediction, union_);
 
-    float ap = 0;
-    float prevRecall = 0.0;
-    float maxPrecision = 0.0;
-    std::cout << "Predictions.size: " << predictions.size() << std::endl << std::endl;
+    float intersectionArea = cv::countNonZero(intersection);
+    float unionArea = cv::countNonZero(union_);
 
-    // PASCAL VOC 11 Point Interpolation Method for calculating the Average Precision (AP)
-    for (int i = 0; i < predictions.size(); ++i)
-    {
-        std::cout << "i: " << i << std::endl;
-        if (score[i] >= 0.5) {  // IoU threshold = 0.5
-            truePositives++;
-        }
-        else {
-            falsePositives++;
-        }
-        std::cout << "truepos: " << truePositives << std::endl;
-        std::cout << "falsepos: " << falsePositives << std::endl;
-        falseNegatives = groundTruths.size() - truePositives;
-        std::cout << "falseneg: " << falseNegatives << std::endl;
-
-        precision[i] = static_cast<float>(truePositives) / (truePositives + falsePositives);
-        recall[i] = static_cast<float>(truePositives) / (truePositives + falseNegatives);
-        std::cout << "Precision[i]: " << precision[i] << std::endl;
-        std::cout << "Recall[i]: " << recall[i] << std::endl;
-
-
-
-
-        // Calculate the maximum precision at the current recall level
-        if (precision[i] > maxPrecision)
-            maxPrecision = precision[i];
-        std::cout << "Max Precision: " << maxPrecision << std::endl;
-
-        // Calculate the average precision using the PASCAL VOC 11 Point Interpolation Method
-        if (recall[i] != prevRecall)
-        {
-            ap += maxPrecision;
-            prevRecall = recall[i];
-        }
+    if (unionArea == 0) {
+        return 1.0;
     }
 
-    // Calculate the final average precision
-    ap /= 11.0;
+    return intersectionArea / unionArea;
+}
 
-    std::cout << "Average Precision (AP): Maxprecision/11 " << ap << std::endl << std::endl << std::endl;
+float meanintersectionoverunion(const std::vector<cv::Mat>& groundTruthMasks, const std::vector<cv::Mat>& predictionMasks, std::vector<int>& IDs) {
+    if (groundTruthMasks.size() != predictionMasks.size()) {
+        std::cerr << "Error: groundTruthMasks and predictionMasks vectors must have the same size." << std::endl;
+        return -1;
+    }
 
-    return ap;
+    float sumIoU = 0.0;
+    int numMasks = groundTruthMasks.size();
+
+    for (int i = 0; i < numMasks; ++i) {
+        float IoU = get_segmentation_iou(groundTruthMasks[i], predictionMasks[i]);
+        std::cout << "Intersection over Union for ID " << IDs[i] << ": " << IoU << std::endl;
+        sumIoU += IoU;
+    }
+
+    float mIoU = sumIoU / numMasks;
+    return mIoU;
 }
 
 
 
-float mIoU(const std::vector<cv::Rect>& groundTruths, const std::vector<cv::Rect>& predictions) {
-    if (groundTruths.size() != predictions.size()) {
-        std::cerr << "Error: Number of ground truth objects is not equal to the number of predicted objects." << std::endl;
-        return 0.0f;
-    }
 
-    float totalIoU = 0.0f;
-    int numObjects = groundTruths.size();
-
-    for (int i = 0; i < numObjects; i++) {
-        float iou = get_iou(groundTruths[i], predictions[i]);
-        totalIoU += iou;
-    }
-
-    float meanIoU = totalIoU / numObjects;
-    return meanIoU;
-}

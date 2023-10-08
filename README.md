@@ -24,9 +24,9 @@ The system to be developed should be able to
 - Estimate leftover quantity in number of pixels.
 - Measure Performance with mean Average Precision(mAP) and mean Intersection over Union (mIoU)
 
-![Alt text](image.png)
+![Alt text](source_images/image.png)
 
-![Alt text](image-1.png)
+![Alt text](source_images/image-1.png)
 
 ## Dataset Description
 
@@ -73,15 +73,19 @@ tray8: pasta with clams and mussels, seafood salad, basil potatoes, beans, salad
 
 ## Project Structure
 ```bash
-├── trays(dataset)
+├── trays(dataset)--> Tray1,  Tray2,  ... , Tray8
 ├── templates(for Template Matching)
+│   ├── first_course
+│   ├── second_course
+│   ├── side_dish
 ├── Report.pdf
 ├── CMakeLists.txt (Cmake compile file)
-├── annotation.cpp
-├── annotation.h
-├── segmentation.cpp
-├── segmentation.h
-├── evalutation.cpp
-├── evaluation.h
+├── main.cpp
+├── Annotation.cpp
+├── Annotation.h
+├── Segmentation.cpp
+├── Segmentation.h
+├── Evalutation.cpp
+├── Evaluation.h
 └── README.md
 ```
