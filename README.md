@@ -62,14 +62,14 @@ The benchmark dataset includes a total of 14 food categories. Each category is a
 
 ### Tray Composition 
 
-tray1: pesto pasta, grilled pork cutlet, beans
-tray2: pasta with tomato sauce, fish cutlet, basil potatoes, salad
-tray3: tomato pasta, rabbit, salad
-tray4: pilaw rice with peppers and peas, fish cutlet, basil potatoes, salad, bread
-tray5: pasta with meat sauce, rabbit, beans, bread
-tray6: clam and mussel stir-fry, grilled pork chop, beans, salad
-tray7: pasta with clams and mussels, fish cutlet, basil potatoes, salad
-tray8: pasta with clams and mussels, seafood salad, basil potatoes, beans, salad
+- tray1: pesto pasta, grilled pork cutlet, beans
+- tray2: pasta with tomato sauce, fish cutlet, basil potatoes, salad
+- tray3: tomato pasta, rabbit, salad
+- tray4: pilaw rice with peppers and peas, fish cutlet, basil potatoes, salad, bread
+- tray5: pasta with meat sauce, rabbit, beans, bread
+- tray6: clam and mussel stir-fry, grilled pork chop, beans, salad
+- tray7: pasta with clams and mussels, fish cutlet, basil potatoes, salad
+- tray8: pasta with clams and mussels, seafood salad, basil potatoes, beans, salad
 
 ## Project Structure
 ```bash
