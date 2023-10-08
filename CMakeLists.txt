@@ -19,9 +19,9 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 # Add source to this project's executable.
 
-add_executable (CV_PROJECT1 "Annotation.cpp" "Annotation.h""Segmentation.cpp" "Segmentation.h" "Evaluation.cpp" "Evaluation.h" "main.cpp" )
+add_executable (CV_PROJECT "Annotation.cpp" "Annotation.h""Segmentation.cpp" "Segmentation.h" "Evaluation.cpp" "Evaluation.h")
 
-target_link_libraries(CV_PROJECT1 ${OpenCV_LIBS})
+target_link_libraries(CV_PROJECT ${OpenCV_LIBS})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET CV_PROJECT1 PROPERTY CXX_STANDARD 20)
